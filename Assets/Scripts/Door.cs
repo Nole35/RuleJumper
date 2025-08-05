@@ -5,6 +5,7 @@ public class Door : MonoBehaviour
 {
     public string requiredKeyColor = "yellow";
     public AudioClip doorOpenSound;
+    public bool isFinalDoor = false; // ✓ čekiraj u Inspectoru za poslednja vrata
 
     private AudioSource audioSource;
     private bool isOpened = false;
@@ -18,17 +19,30 @@ public class Door : MonoBehaviour
     {
         if (isOpened) return;
 
-        if (collision.collider.CompareTag("Player") && KeyInventory.instance.HasKey(requiredKeyColor))
+        if (collision.collider.CompareTag("Player"))
         {
-            isOpened = true;
-
-            if (doorOpenSound != null && audioSource != null)
+            if (KeyInventory.instance.HasKey(requiredKeyColor))
             {
-                StartCoroutine(DestroyAfterSound(doorOpenSound, 0.2f));
+                isOpened = true;
+                GameManager.instance.AddScore(10); // ✓ poeni za otvaranje
+
+                if (isFinalDoor)
+                {
+                    GameManager.instance.EndGame(true); // ✓ Victory ekran
+                }
+
+                if (doorOpenSound != null && audioSource != null)
+                {
+                    StartCoroutine(DestroyAfterSound(doorOpenSound, 0.2f));
+                }
+                else
+                {
+                    Destroy(gameObject);
+                }
             }
             else
             {
-                Destroy(gameObject);
+                GameManager.instance.AddScore(-5); // ✗ poeni ako nemaš ključ
             }
         }
     }

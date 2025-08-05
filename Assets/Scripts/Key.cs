@@ -9,7 +9,7 @@ public class Key : MonoBehaviour
 
     void Start()
     {
-        audioSource = GetComponent<AudioSource>(); // koristi AudioSource iz Inspectora
+        audioSource = GetComponent<AudioSource>();
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -17,13 +17,14 @@ public class Key : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             KeyInventory.instance.AddKey(keyColor);
+            GameManager.instance.AddScore(5); // ➤ Dodaj 5 poena za ključ
 
             if (pickupSound != null && audioSource != null)
             {
                 StartCoroutine(PlayShortSound(pickupSound, 0.2f));
             }
 
-            Destroy(gameObject, 0.25f); // sačekaj da se zvuk završi
+            Destroy(gameObject, 0.25f); // sačekaj da se čuje zvuk
         }
     }
 

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
@@ -23,6 +22,8 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.instance.IsGameEnded()) return;
+
         float moveInput = Input.GetAxis("Horizontal");
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
 
@@ -39,7 +40,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (transform.position.y < -10f)
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            GameManager.instance.EndGame(false);
         }
     }
 
@@ -65,3 +66,4 @@ public class PlayerMovement : MonoBehaviour
         audioSource.Stop();
     }
 }
+
