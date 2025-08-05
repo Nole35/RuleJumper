@@ -1,6 +1,6 @@
-using UnityEngine;
+//using UnityEngine;
 
-public class PlayerInventory : MonoBehaviour
-{
-    public bool hasKey = false;
-}
+//public class PlayerInventory : MonoBehaviour
+//{
+//    public bool hasKey = false;
+//}

@@ -1,27 +1,43 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 public class Door : MonoBehaviour
 {
-    public string requiredKeyColor;
+    public string requiredKeyColor = "yellow";
+    public AudioClip doorOpenSound;
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private AudioSource audioSource;
+    private bool isOpened = false;
+
+    void Start()
     {
-        if (collision.gameObject.CompareTag("Player"))
+        audioSource = GetComponent<AudioSource>();
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (isOpened) return;
+
+        if (collision.collider.CompareTag("Player") && KeyInventory.instance.HasKey(requiredKeyColor))
         {
-            if (KeyInventory.instance != null && KeyInventory.instance.HasKey(requiredKeyColor))
+            isOpened = true;
+
+            if (doorOpenSound != null && audioSource != null)
             {
-                Debug.Log("Door unlocked with key: " + requiredKeyColor);
-                Destroy(gameObject);
+                StartCoroutine(DestroyAfterSound(doorOpenSound, 0.2f));
             }
             else
             {
-                Rigidbody2D rb = collision.gameObject.GetComponent<Rigidbody2D>();
-                if (rb != null)
-                {
-                    rb.linearVelocity = new Vector2(-rb.linearVelocity.x * 0.5f, rb.linearVelocity.y);
-                    Debug.Log("Player does not have the correct key! Door remains closed.");
-                }
+                Destroy(gameObject);
             }
         }
+    }
+
+    private IEnumerator DestroyAfterSound(AudioClip clip, float delay)
+    {
+        audioSource.clip = clip;
+        audioSource.Play();
+        yield return new WaitForSeconds(delay);
+        Destroy(gameObject);
     }
 }
