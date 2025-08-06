@@ -5,7 +5,8 @@ public class Door : MonoBehaviour
 {
     public string requiredKeyColor = "yellow";
     public AudioClip doorOpenSound;
-    public bool isFinalDoor = false; // ✓ čekiraj u Inspectoru za poslednja vrata
+    public GameObject bangEffectPrefab;
+    public bool isFinalDoor = false;
 
     private AudioSource audioSource;
     private bool isOpened = false;
@@ -17,41 +18,48 @@ public class Door : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (isOpened) return;
+        if (isOpened || GameManager.instance.IsGameEnded()) return;
 
         if (collision.collider.CompareTag("Player"))
         {
             if (KeyInventory.instance.HasKey(requiredKeyColor))
             {
                 isOpened = true;
-                GameManager.instance.AddScore(10); // ✓ poeni za otvaranje
+                GameManager.instance.AddScore(10);
 
-                if (isFinalDoor)
+                // 🔥 Bang efekat odmah pri otvaranju vrata
+                if (bangEffectPrefab != null)
                 {
-                    GameManager.instance.EndGame(true); // ✓ Victory ekran
+                    GameObject bang = Instantiate(bangEffectPrefab, transform.position, Quaternion.identity);
+                    Destroy(bang, 1f); // traje 1 sekundu
                 }
 
                 if (doorOpenSound != null && audioSource != null)
                 {
-                    StartCoroutine(DestroyAfterSound(doorOpenSound, 0.2f));
+                    audioSource.Play();
                 }
-                else
+
+                // Ako su finalna vrata → Victory
+                if (isFinalDoor)
                 {
-                    Destroy(gameObject);
+                    GameManager.instance.EndGame(true); // konfete će biti tamo
                 }
+
+                // Uništi vrata
+                Destroy(gameObject, 0.2f);
             }
             else
             {
-                GameManager.instance.AddScore(-5); // ✗ poeni ako nemaš ključ
+                GameManager.instance.AddScore(-5);
+
+                // Odbaci igrača ako nema ključ
+                Rigidbody2D rb = collision.collider.GetComponent<Rigidbody2D>();
+                if (rb != null)
+                {
+                    rb.linearVelocity = new Vector2(-5f, 3f);
+                }
             }
         }
     }
-
-    private IEnumerator DestroyAfterSound(AudioClip clip, float delay)
-    {
-        audioSource.clip = clip;
-        audioSource.Play();
-        yield return new WaitForSeconds(delay);
-        Destroy(gameObject);
-    }
 }
+

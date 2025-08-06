@@ -1,10 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Collections;
+
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
+
 
     public int score = 0;
     private float timer = 0f;
@@ -16,9 +19,12 @@ public class GameManager : MonoBehaviour
     public GameObject endScreen;
     public TextMeshProUGUI endMessageText;
     public TextMeshProUGUI finalScoreText;
-
-    [Header("High Score")]
     public TextMeshProUGUI highScoreText;
+    public GameObject goText;
+
+
+    [Header("Victory Effects")]
+    public GameObject victoryConfettiPrefab;
 
     private const string HighScoreKey = "HighScore";
     private const string HighTimeKey = "HighTime";
@@ -29,6 +35,9 @@ public class GameManager : MonoBehaviour
             instance = this;
         else
             Destroy(gameObject);
+
+        if (goText != null)
+            StartCoroutine(HideGoText());
     }
 
     void Update()
@@ -53,10 +62,20 @@ public class GameManager : MonoBehaviour
         endMessageText.text = victory ? "Victory!" : "Game Over";
         finalScoreText.text = $"Score: {score} | Time: {timer:F1}s";
 
-        // Provera i a�uriranje najboljeg rezultata
+        // 🎉 Konfete efekat – SAMO ako je victory
+        if (victory && victoryConfettiPrefab != null)
+        {
+            GameObject confetti = Instantiate(
+                victoryConfettiPrefab,
+                Camera.main.transform.position + new Vector3(0, 0, 5),
+                Quaternion.identity
+            );
+            Destroy(confetti, 3f); // konfete traju 3 sekunde
+        }
+
+        // 🔒 High score update
         int savedHighScore = PlayerPrefs.GetInt(HighScoreKey, 0);
         float savedHighTime = PlayerPrefs.GetFloat(HighTimeKey, float.MaxValue);
-
         bool isNewHigh = false;
 
         if (score > savedHighScore || (score == savedHighScore && timer < savedHighTime))
@@ -79,5 +98,11 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
-}
 
+    private IEnumerator HideGoText()
+    {
+        yield return new WaitForSeconds(1f);
+        if (goText != null)
+            goText.SetActive(false);
+    }
+}
